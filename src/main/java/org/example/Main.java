@@ -3,10 +3,12 @@ package org.example;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
+import cn.hutool.core.io.unit.DataSizeUtil;
 import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
@@ -18,22 +20,34 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Main {
+    //输出excel 会自动创建
+    private static String path = "D:\\desktop\\01风场\\一次调频\\鸡冠山\\2024-05-17";
+    private static String outputName = "writeTest4.xlsx";
+    private static String logFileName = "D:\\desktop\\01风场\\一次调频\\鸡冠山\\2024-05-17\\sanywind.trace.2024-05-17.{}.log";
+
+    private static String startTimeStr = "2024-05-17 16:45:37.190";
+    private static String endTimeStr = "2024-05-17 16:50:37.190";
+
+    private static String logNums = "27-28";
+
+    private static DateTime startDateTime;
+    private static DateTime endDateTime;
+
     public static void main(String[] args) {
 
         final TimeInterval timer = DateUtil.timer();
-
         //输出excel 会自动创建
-        String path = "D:\\desktop\\01风场\\一次调频\\鸡冠山\\2024-05-17";
-        String outputFileName = path + "\\" + "writeTest4.xlsx";
+        String outputFileName = path + "\\" + outputName;
         //删除上次输出的文件
         FileUtil.del(outputFileName);
         //日志文件路径
-        String logFileName = "D:\\desktop\\01风场\\一次调频\\鸡冠山\\2024-05-17\\sanywind.trace.2024-05-17.{}.log";
-        //默认UTF-8编码，可以在构造中传入第二个参数做为编码
-
         BigExcelWriter writer = ExcelUtil.getBigWriter(outputFileName,"turbineMeasurements");
+        //2024-05-17 12:04:08.276
 
-        String logNums = "27-28";
+        startDateTime = DateUtil.parse(startTimeStr, "yyyy-MM-dd HH:mm:ss.SSS");
+        endDateTime = DateUtil.parse(endTimeStr, "yyyy-MM-dd HH:mm:ss.SSS");
+
+
         //日志起始页
         int startNumber = Convert.toInt(logNums.split("\\-")[0]);
         //日志结束页
@@ -104,7 +118,12 @@ public class Main {
         Console.log("准备单机长数据...");
         for (int i = 0; i < turbineList.size(); i++) {
             ArrayList<Object> info = CollUtil.newArrayList();
-            info.add(getTime(turbineList.get(i)));
+            String time = getTime(turbineList.get(i));
+            DateTime dateTime = DateUtil.parseDateTime(time);
+            if (dateTime.isAfter(endDateTime) || dateTime.isBefore(startDateTime)) {
+                continue;
+            }
+            info.add(time);
             String turbineInfo = turbineList.get(i).split("有功传入 turbineMeasurements:")[1];
             JSONArray objects = new JSONArray(turbineInfo);
             for (int turbIndex = 0; turbIndex < objects.size(); turbIndex++) {
@@ -147,7 +166,12 @@ public class Main {
         Console.log("准备单机长数据...");
         for (int i = 0; i < turbineList.size(); i++) {
             ArrayList<Object> info = CollUtil.newArrayList();
-            info.add(getTime(turbineList.get(i)));
+            String time = getTime(turbineList.get(i));
+            DateTime dateTime = DateUtil.parseDateTime(time);
+            if (dateTime.isAfter(endDateTime) || dateTime.isBefore(startDateTime)) {
+                continue;
+            }
+            info.add(time);
             String turbineInfo = turbineList.get(i).split("有功传入 turbineMeasurements:")[1];
             JSONArray objects = new JSONArray(turbineInfo);
             for (int turbIndex = 0; turbIndex < objects.size(); turbIndex++) {
@@ -178,6 +202,10 @@ public class Main {
         writer.autoSizeColumnAll();
         for (String gridReturn : gridReturnList) {
             String time = getTime(gridReturn);
+            DateTime dateTime = DateUtil.parseDateTime(time);
+            if (dateTime.isAfter(endDateTime) || dateTime.isBefore(startDateTime)) {
+                continue;
+            }
             String gridReturnMeasurements = gridReturn.split("有功返回 gridReturnValues:")[1];
             final JSONArray jsonArray = new JSONArray(gridReturnMeasurements);
             List<Double> doubles = jsonArray.toList(Double.class);
@@ -214,6 +242,10 @@ public class Main {
         writer.autoSizeColumnAll();
         for (String gridReturn : gridReturnList) {
             String time = getTime(gridReturn);
+            DateTime dateTime = DateUtil.parseDateTime(time);
+            if (dateTime.isAfter(endDateTime) || dateTime.isBefore(startDateTime)) {
+                continue;
+            }
             String gridReturnMeasurements = gridReturn.split("有功返回 gridReturnValues:")[1];
             final JSONArray jsonArray = new JSONArray(gridReturnMeasurements);
             List<Double> doubles = jsonArray.toList(Double.class);
@@ -249,6 +281,10 @@ public class Main {
             String turbineMeasurements = turbineInfo.split("有功传入 turbineMeasurements:")[1];
             String theoryPowers = theoryPowerArrStr.split("Power:")[1];
             String time = getTime(turbineInfo);
+            DateTime dateTime = DateUtil.parseDateTime(time);
+            if (dateTime.isAfter(endDateTime) || dateTime.isBefore(startDateTime)) {
+                continue;
+            }
             JSONArray objects = new JSONArray(turbineMeasurements);
             JSONArray objects2 = new JSONArray(theoryPowers);
             for (int i = 0; i < objects.size(); i++) {
