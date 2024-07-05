@@ -25,13 +25,13 @@ import java.util.List;
  * @create: 2024/5/20 12:42
  */
 public class AGVC {
-    private String path = "D:\\desktop\\01风场\\KWE\\2024-05-20";
+    private String path = "D:\\desktop\\01风场\\KWE";
     private String outputName = "agvc.xlsx";
-    private String logFileName = "D:\\desktop\\01风场\\KWE\\2024-05-20\\sanywind.trace.2024-05-20.{}.log";
-    private String logNums = "3-3";
+    private String logFileName = "sanywind.trace.2024-05-21.{}.log";
+    private String logNums = "1-2";
 
     private  String startTimeStr = "2024-05-20 23:45:37.190";
-    private  String endTimeStr = "2024-05-20 23:59:37.190";
+    private  String endTimeStr = "2024-05-21 23:59:37.190";
 
     private  DateTime startDateTime;
     private  DateTime endDateTime;
@@ -47,6 +47,7 @@ public class AGVC {
 
         startDateTime = DateUtil.parse(startTimeStr, "yyyy-MM-dd HH:mm:ss.SSS");
         endDateTime = DateUtil.parse(endTimeStr, "yyyy-MM-dd HH:mm:ss.SSS");
+        logFileName = path + "\\" + logFileName;
         //输出excel 会自动创建
         String dateStr = MyUtil.getDate(logFileName);
         String outputFileName = path + "\\" + dateStr + "-" + outputName;
@@ -176,9 +177,10 @@ public class AGVC {
         // 处理第一行
         writer.setFreezePane(1);
         String title1 = "时间,无功控制算法版本,系统投入,系统开闭模式,无功调控模式,无功指令类型,AVC指令反馈,并网点电压,并网点无功功率," +
-                "增闭锁信号,减闭锁信号,可增无功容量,可减无功容量,SVG控制模式反馈,控制变化步长反馈,控制死区反馈,分配策略,主变档位反馈," +
-                "并网点通信,并网点无功功率超目标上限,并网点电压超目标电压上限,风场风机总无功,风机可调无功上限值,风机可调无功下限值," +
-                "风场理论总无功,SVG可调无功上限,SVG可调无功下限,并网点功率因数,风场实发总无功反馈,风场无功理论上限,风场无功理论下限,系统阻抗,无功线损";
+                "增闭锁信号,减闭锁信号,可增无功容量,可减无功容量,SVG控制模式反馈,控制变化步长反馈,控制死区反馈,分配策略,主变档位反馈,并网点通信," +
+                "并网点无功功率超目标上限,并网点电压超目标电压上限,风场风机总无功,风机可调无功上限值,风机可调无功下限值,风场理论总无功,SVG可调无功上限," +
+                "SVG可调无功下限,并网点功率因数,风场实发总无功反馈,风场无功理论上限," +
+                "风场无功理论下限,系统阻抗,无功指令反馈,电压指令反馈,功率因数指令反馈,无功线损,并网点使能,电压死区,SVG总无功,无功状态码,实际下发指令,平均电压";
         final String[] split = title1.split("\\,");
         List<List<Object>> rows = CollUtil.newArrayList();
         rows.add(new ArrayList<>(Arrays.asList(split)));

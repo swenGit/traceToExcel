@@ -16,24 +16,27 @@ import cn.hutool.poi.excel.ExcelUtil;
 
 import java.util.*;
 
-public class Main {
+public class MainScada {
     //输出excel 会自动创建
-    private static String path = "D:\\desktop\\01风场\\EMS\\F方元\\2024-07-03";
-    private static String outputName = "F方元.xlsx";
-    private static String logFileName = "sanywind.trace.2024-07-03.{}.log";
-    private static String startTimeStr = "2024-07-03 16:39:04.048";
-    private static String endTimeStr = "2024-07-03 18:50:14.048";
-    private static String logNums = "12-13";
-    private static String[] titleBase = {"有功功率", "无功功率", "电网电压"};
-    private static double[] coeff = {1, 1, 1};
+    private static String path = "D:\\desktop\\01风场\\一次调频\\J济源\\2024.6.22\\2024-06-22";
+    private static String outputName = "济源.xlsx";
+    private static String logFileName = "sanywind.trace.2024-06-22.{}.log";
+
+    private static String startTimeStr = "2024-06-14 21:29:11.933";
+    private static String endTimeStr = "2024-06-23 22:25:33.933";
+
+    private static String logNums = "11-12";
     private static Map<String, Integer> turbineMeasurementMap = new HashMap<>();
 
     private static String turbineMeasurementNames = "时间,风机,风机正常,维护,能量管理平台停机指令,通讯中断,风机运行状态,电网电压" +
             ",电网电流,有功功率,无功功率,无功控制显示,风速,功率因数,当前桨叶角度,限功率百分比显示,发电量,发电机转速" +
             ",风向,油温,机舱温度,室外温度,轴1桨叶实际角度,轴2桨叶实际角度,EMS限功率百分比,算法状态机,理论功率返回,额定功率" +
             ",最小桨距角,可利用号,算法风向偏差大标志,算法振动大标志,低穿标志" +
-            ",高穿标志,无功降容,净有功,blank,blank,blank,blank,blank,blank,下调速度,有功指令参考点,上调速度,全场限电" +
+            ",高穿标志,无功降容,净有功,blank,blank,blank,blank,blank,blank,下调速度,有功指令参考点,上调速度" +
             ",理论功率";
+
+    private static String[] titleBase = {"有功功率", "EMS限功率百分比", "当前桨叶角度"};
+    private static double[] coeff = {1, 49.5, 1};;
 
     private static String gridReturnNames = "时间,标杆风机数量,风场风机故障数量,标杆风机并网数量,标杆风机总有功,可控风机数量,限电停机数量," +
             "可控风机并网数量,可控风机实发总有功,可控风机理论有功,开机容量,风场通讯中断风机数量,风场并网发电风机算量,风场开机风机数量,风力理论有功（机舱风速法）," +
@@ -41,8 +44,7 @@ public class Main {
             "场外受阻电力（样板机法）,风场实发总有功,标杆风机容量,有功控制偏差,有功指令反馈,待风风机数,自由发电数,风场平均风速,运行风机平均功率,待机容量,发电容量,故障容量," +
             "停机容量,限功率容量,自由发电容量,停机数量,限功率数量,实际下发的指令," +
             "平均线损,反馈一次调频指令,反馈一次调频使能,检修台数,检修容量,可发有功上限,可发有功下限,有功投入,并网点有功反馈,限电标志位," +
-            "限电量,EMSVersion算法版本号,blank1,blank2,blank3,blank4,blank5,blank6,变化率状态码,备用请求使能,备用请求码," +
-            "风场总无功,风场理论总无功,风场无功指令反馈,可发无功上限,可发无功下限,无功投入,组1总无功,组1理论总无功,组1无功指令反馈,组1可发无功上限,组1可发无功下限,组1无功投入";
+            "限电量,EMSVersion算法版本号,变化率状态码,备用请求使能,备用请求码";
 
     static {
         String[] split = turbineMeasurementNames.split("\\,");
@@ -77,7 +79,6 @@ public class Main {
         ArrayList<String> turbineList = new ArrayList<>();
         ArrayList<String> gridReturnList = new ArrayList<>();
         ArrayList<String> theoryPowerList = new ArrayList<>();
-        ArrayList<String> reactiveList = new ArrayList<>();
 
         // 筛选关键字
         for (int i = startNumber; i <= endNumber; i++) {
@@ -92,9 +93,6 @@ public class Main {
             strings1 = fileReader1.readLines();
             strings1.removeIf(s -> !s.contains("有功返回 theoryPower"));
             theoryPowerList.addAll(strings1);
-            strings1 = fileReader1.readLines();
-            strings1.removeIf(s -> !s.contains("无功返回 gridReturnValuesAvc"));
-            reactiveList.addAll(strings1);
         }
         int turbineNums = theoryPowerList.get(0).split("Power:")[1].split(",").length;
         // 单机数据
@@ -102,7 +100,7 @@ public class Main {
 
         // 全场数据
         writer.setSheet("gridReturnValues");
-        writeGridReturn(writer, gridReturnList, reactiveList);
+        writeGridReturn(writer, gridReturnList);
 
         // 一次调频数据
         writer.setSheet("primaryFrequency");
@@ -169,8 +167,8 @@ public class Main {
     private static void writePFC(BigExcelWriter writer, ArrayList<String> gridReturnList) {
         writer.setFreezePane(1);
         Console.log("pfc working...");
-        String title = "时间,实际下发指令,风场实发总有功,有功指令反馈,并网点有功反馈,平均线损反馈,一次调频指令反馈,一次调频使能,风场可用有功";
-        int[] indexs = {37, 21, 24, 46, 38, 39, 40, 15};
+        String title = "时间,实际下发指令,风场实发总有功,并网点有功反馈,平均线损反馈,一次调频指令反馈,一次调频使能,风场可用有功";
+        int[] indexs = {37, 21, 46, 38, 39, 40, 15};
         List<List<Object>> rows = CollUtil.newArrayList();
         rows.add(new ArrayList<>(Arrays.asList(title.split(","))));
         writer.autoSizeColumnAll();
@@ -198,7 +196,7 @@ public class Main {
         Console.log("写入快频数据成功...");
     }
 
-    private static void writeGridReturn(BigExcelWriter writer, ArrayList<String> gridReturnList, ArrayList<String> reactiveList) {
+    private static void writeGridReturn(BigExcelWriter writer, ArrayList<String> gridReturnList) {
         writer.setFreezePane(1);
         Console.log("gridReturnList.size()");
         Console.log(gridReturnList.size());
@@ -206,9 +204,7 @@ public class Main {
         List<List<Object>> rows = CollUtil.newArrayList();
         rows.add(new ArrayList<>(Arrays.asList(GridReturntitle2.split("\\,"))));
         writer.autoSizeColumnAll();
-        for (int i = 0; i < gridReturnList.size() - 1; i++) {
-            String gridReturn = gridReturnList.get(i);
-            String reactiveGridReturn = reactiveList.get(i);
+        for (String gridReturn : gridReturnList) {
             String time = getTime(gridReturn);
             DateTime dateTime = DateUtil.parseDateTime(time);
             if (dateTime.isAfter(endDateTime) || dateTime.isBefore(startDateTime)) {
@@ -220,9 +216,6 @@ public class Main {
             ArrayList<Object> objects1 = new ArrayList<>();
             objects1.add(time);
             objects1.addAll(doubles);
-            String reactive = reactiveGridReturn.split("无功返回 gridReturnValuesAvc:")[1];
-            List<Double> list = new JSONArray(reactive).toList(Double.class);
-            objects1.addAll(list);
             rows.add(objects1);
         }
 
@@ -281,7 +274,7 @@ public class Main {
         int endIndex = input.indexOf("]"); // 结束位置为]
 
         // 使用substring方法提取日期
-        String date = input.substring(startIndex, endIndex);
+        String date = input.substring(0,19);
         return date;
     }
 
