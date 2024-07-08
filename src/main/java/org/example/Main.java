@@ -18,14 +18,16 @@ import java.util.*;
 
 public class Main {
     //输出excel 会自动创建
-    private static String path = "D:\\desktop\\01风场\\EMS\\F方元\\2024-07-03";
-    private static String outputName = "F方元.xlsx";
-    private static String logFileName = "sanywind.trace.2024-07-03.{}.log";
-    private static String startTimeStr = "2024-07-03 16:39:04.048";
-    private static String endTimeStr = "2024-07-03 18:50:14.048";
-    private static String logNums = "12-13";
-    private static String[] titleBase = {"有功功率", "无功功率", "电网电压"};
-    private static double[] coeff = {1, 1, 1};
+    private static String path = "D:\\desktop\\01风场\\EMS\\S上都2号站\\2024-06-21";
+    private static String outputName = "S上都2号站18点.xlsx";
+    private static String logFileName = "sanywind.trace.2024-06-21.{}.log";
+    private static String startTimeStr = "2024-06-21 18:36:35.243";
+    private static String endTimeStr = "2024-06-21 19:00:34.243";
+    private static String logNums = "21-23";
+    private static String[] titleBase = {"有功功率", "EMS限功率百分比", "当前桨叶角度"};
+    private static double[] coeff = {1, 51.5, 1};
+
+    private static boolean singleSheet = false;
     private static Map<String, Integer> turbineMeasurementMap = new HashMap<>();
 
     private static String turbineMeasurementNames = "时间,风机,风机正常,维护,能量管理平台停机指令,通讯中断,风机运行状态,电网电压" +
@@ -98,7 +100,9 @@ public class Main {
         }
         int turbineNums = theoryPowerList.get(0).split("Power:")[1].split(",").length;
         // 单机数据
-        writeTurbines(turbineList, theoryPowerList, writer);
+        if (singleSheet) {
+            writeTurbines(turbineList, theoryPowerList, writer);
+        }
 
         // 全场数据
         writer.setSheet("gridReturnValues");
