@@ -18,16 +18,17 @@ import java.util.*;
 
 public class Main {
     //输出excel 会自动创建
-    private static String path = "D:\\desktop\\01风场\\EMS\\S上都2号站\\2024-06-21";
-    private static String outputName = "S上都2号站18点.xlsx";
-    private static String logFileName = "sanywind.trace.2024-06-21.{}.log";
-    private static String startTimeStr = "2024-06-21 18:36:35.243";
-    private static String endTimeStr = "2024-06-21 19:00:34.243";
-    private static String logNums = "21-23";
-    private static String[] titleBase = {"有功功率", "EMS限功率百分比", "当前桨叶角度"};
-    private static double[] coeff = {1, 51.5, 1};
+    private static String path = "D:\\desktop\\01风场\\EMS\\T天门胡\\天门__谢家湾风电场\\2024-07-08";
+    private static String outputName = "T天门胡.xlsx";
+    private static String logFileName = "sanywind.trace.2024-07-08.{}.log";
+    private static String startTimeStr = "2024-07-08 11:30:35.243";
+    private static String endTimeStr = "2024-07-08 11:37:02.326";
+    private static String logNums = "16-23";
+    private static String[] titleBase = {"有功功率", "EMS限功率百分比"};
+    private static double[] coeff = {1/25.6, 1}; //2% 4%
 
-    private static boolean singleSheet = false;
+    private static boolean singleSheet = true;
+    private static boolean soLimit = true;
     private static Map<String, Integer> turbineMeasurementMap = new HashMap<>();
 
     private static String turbineMeasurementNames = "时间,风机,风机正常,维护,能量管理平台停机指令,通讯中断,风机运行状态,电网电压" +
@@ -80,6 +81,7 @@ public class Main {
         ArrayList<String> gridReturnList = new ArrayList<>();
         ArrayList<String> theoryPowerList = new ArrayList<>();
         ArrayList<String> reactiveList = new ArrayList<>();
+        ArrayList<String> soLimitList = new ArrayList<>();
 
         // 筛选关键字
         for (int i = startNumber; i <= endNumber; i++) {
@@ -97,6 +99,9 @@ public class Main {
             strings1 = fileReader1.readLines();
             strings1.removeIf(s -> !s.contains("无功返回 gridReturnValuesAvc"));
             reactiveList.addAll(strings1);
+            strings1 = fileReader1.readLines();
+            strings1.removeIf(s -> !s.contains("有功返回 PowerCoefficient"));
+            soLimitList.addAll(strings1);
         }
         int turbineNums = theoryPowerList.get(0).split("Power:")[1].split(",").length;
         // 单机数据
@@ -114,7 +119,7 @@ public class Main {
 
         // 单机合并数据(有功功率, 功率参考点)
         writer.setSheet("turbinesLong");
-        writeTurbinesLong(writer, turbineList, turbineNums);
+        writeTurbinesLong(writer, turbineList, turbineNums, soLimitList);
 
 
         //关闭writer，释放内存
@@ -124,7 +129,7 @@ public class Main {
         Console.log("用时:" + timer.interval() + "ms...");
     }
 
-    private static void writeTurbinesLong(BigExcelWriter writer, ArrayList<String> turbineList, int turbineSize) {
+    private static void writeTurbinesLong(BigExcelWriter writer, ArrayList<String> turbineList, int turbineSize, ArrayList<String> soLimitList) {
         writer.setFreezePane(1);
         List<List<Object>> rows = CollUtil.newArrayList();
         // 准备表头
@@ -137,6 +142,9 @@ public class Main {
         for (int i = 0; i < turbineSize; i++) {
             for (String base : titleBase) {
                 titleList.add(i + 1 + "-" + base);
+            }
+            if (soLimit) {
+                titleList.add(i + 1 + "-" + "算法目标值");
             }
         }
         rows.add(titleList);
@@ -151,13 +159,18 @@ public class Main {
             }
             info.add(time);
             String turbineInfo = turbineList.get(i).split("有功传入 turbineMeasurements:")[1];
+            String soLimitInfo = soLimitList.get(i).split("有功返回 PowerCoefficient:")[1];
             JSONArray objects = new JSONArray(turbineInfo);
+            JSONArray objects2 = new JSONArray(soLimitInfo);
             for (int turbIndex = 0; turbIndex < objects.size(); turbIndex++) {
                 JSONArray jsonArray = objects.getJSONArray(turbIndex);
                 List<Double> turbInfo = jsonArray.toList(Double.class);
                 for (int i1 = 0; i1 < titleIndexs.length; i1++) {
                     int titleIndex = titleIndexs[i1];
                     info.add(turbInfo.get(titleIndex) * coeff[i1]);
+                }
+                if (soLimit) {
+                    info.add(objects2.get(turbIndex));
                 }
             }
             rows.add(info);
