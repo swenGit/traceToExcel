@@ -18,17 +18,18 @@ import java.util.*;
 
 public class Main {
     //输出excel 会自动创建
-    private static String path = "D:\\desktop\\01风场\\EMS\\T天门胡\\天门__谢家湾风电场\\2024-07-08";
-    private static String outputName = "T天门胡.xlsx";
-    private static String logFileName = "sanywind.trace.2024-07-08.{}.log";
-    private static String startTimeStr = "2024-07-08 11:30:35.243";
-    private static String endTimeStr = "2024-07-08 11:37:02.326";
-    private static String logNums = "16-23";
-    private static String[] titleBase = {"有功功率", "EMS限功率百分比"};
-    private static double[] coeff = {1/25.6, 1}; //2% 4%
+    private static String path = "D:\\desktop\\01风场\\EMS\\T天门胡\\2024-07-21\\2024-07-21";
+    private static String outputName = "T天门胡5-1分钟.xlsx";
+    private static String logFileName = "sanywind.trace.2024-07-21.{}.log";
+    private static String startTimeStr = "2024-07-21 16:57:59.243";
+    private static String endTimeStr = "2024-07-21 16:59:00.743";
+    private static String logNums = "27-27";
+    private static String[] titleBase = {"有功功率", "发电机转速", "有功指令参考点"};
+    private static double[] coeff = {1, 1, 0.001}; //2% 4%
 
     private static boolean singleSheet = true;
     private static boolean soLimit = true;
+    private static double soLimitCoeff = 25.6;
     private static Map<String, Integer> turbineMeasurementMap = new HashMap<>();
 
     private static String turbineMeasurementNames = "时间,风机,风机正常,维护,能量管理平台停机指令,通讯中断,风机运行状态,电网电压" +
@@ -44,7 +45,7 @@ public class Main {
             "场外受阻电力（样板机法）,风场实发总有功,标杆风机容量,有功控制偏差,有功指令反馈,待风风机数,自由发电数,风场平均风速,运行风机平均功率,待机容量,发电容量,故障容量," +
             "停机容量,限功率容量,自由发电容量,停机数量,限功率数量,实际下发的指令," +
             "平均线损,反馈一次调频指令,反馈一次调频使能,检修台数,检修容量,可发有功上限,可发有功下限,有功投入,并网点有功反馈,限电标志位," +
-            "限电量,EMSVersion算法版本号,blank1,blank2,blank3,blank4,blank5,blank6,变化率状态码,备用请求使能,备用请求码," +
+            "限电量,EMSVersion算法版本号,blank1,blank2,blank3,blank4,blank5,blank6,变化率状态码,备用请求使能,备用请求码,EMS统计的限功率数量," +
             "风场总无功,风场理论总无功,风场无功指令反馈,可发无功上限,可发无功下限,无功投入,组1总无功,组1理论总无功,组1无功指令反馈,组1可发无功上限,组1可发无功下限,组1无功投入";
 
     static {
@@ -150,7 +151,7 @@ public class Main {
         rows.add(titleList);
         // 准备数据
         Console.log("准备单机长数据...");
-        for (int i = 0; i < turbineList.size(); i++) {
+        for (int i = 0; i < turbineList.size() - 1; i++) {
             ArrayList<Object> info = CollUtil.newArrayList();
             String time = getTime(turbineList.get(i));
             DateTime dateTime = DateUtil.parseDateTime(time);
@@ -170,7 +171,7 @@ public class Main {
                     info.add(turbInfo.get(titleIndex) * coeff[i1]);
                 }
                 if (soLimit) {
-                    info.add(objects2.get(turbIndex));
+                    info.add(Double.parseDouble(objects2.get(turbIndex).toString()) * soLimitCoeff);
                 }
             }
             rows.add(info);
